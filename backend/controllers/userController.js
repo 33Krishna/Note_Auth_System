@@ -2,6 +2,7 @@ import { User } from '../models/userModel.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { verifyMail } from '../email/verifyMail.js';
+import { Session } from '../models/sessionModel.js';
 
 export const registerUser = async (req, res) => {
     try {
@@ -96,4 +97,65 @@ export const verify = async (req, res) => {
             message: error.message
         })        
     }
-} 
+}
+
+export const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if(!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'All fields are required!'
+            })
+        }
+
+        const user = await User.findOne({ email })
+        if(!user) {
+            return res.status(401).json({
+                success: false,
+                message: "You don't have an account"
+            })
+        }
+
+        const passwordCheck = await bcrypt.compare(password, user.password)
+        if(!passwordCheck) {
+            return res.status(402).json({
+                success: false,
+                message: "Incorrect Password!"
+            })
+        }
+
+        if(user.isVerified !== true) {
+            return res.status(403).json({
+                success: false,
+                message: "Verify your email first!"
+            })
+        }
+
+        const existingSession = await Session.findOne({ userId: user._id });
+        if(existingSession) {
+            await Session.deleteOne({ userId: user._id })
+        }
+
+        await Session.create({ userId: user._id })
+
+        const accessToken = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "10d" })
+        const refreshToken = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "30d" })
+
+        user.isLoggedIn = true;
+        await user.save()
+
+        return res.status(200).json({
+            success: true,
+            message: `Welcome back ${user.username}`,
+            accessToken,
+            refreshToken,
+            user
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
