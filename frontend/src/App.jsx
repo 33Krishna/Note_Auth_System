@@ -10,6 +10,7 @@ import AuthSuccess from './pages/AuthSuccess'
 import ForgotPassword from './pages/ForgotPassword'
 import VerifyOTP from './pages/VerifyOTP'
 import ChangePassword from './pages/ChangePassword'
+import { Toaster } from 'sonner'
 
 const router = createBrowserRouter([
   {
@@ -53,6 +54,7 @@ const router = createBrowserRouter([
 const App = () => {
   return (
     <div>
+      <Toaster />
       <RouterProvider router={router} />
     </div>
   )
