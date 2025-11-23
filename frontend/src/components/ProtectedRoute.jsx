@@ -1,8 +1,15 @@
+import { getData } from '@/context/userContext'
 import React from 'react'
+import { Navigate } from 'react-router-dom'
 
-const ProtectedRoute = () => {
+const ProtectedRoute = ({children}) => {
+    const {user} = getData()
   return (
-    <div>ProtectedRoute</div>
+    <div>
+      {
+        user ? children : <Navigate to={'/login'}/>
+      }
+    </div>
   )
 }
 

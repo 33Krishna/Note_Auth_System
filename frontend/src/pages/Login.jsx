@@ -55,7 +55,6 @@ const Login = () => {
         toast.error(res.data.message)
     } finally {
         setIsLoading(false)
-        toast.error('Something went wrong!')
     }
   };
   return (
